@@ -3,7 +3,7 @@
 #include <QThread>
 
 #include <QSettings>
-#include <table.h>
+
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -34,8 +34,11 @@ void MainWindow::delay(int ms)
 void MainWindow::on_CheckBtn_clicked()
 {
     //  this->hide();
-      table *mytable=new table();
-      mytable->show();
+      myTable=new table();
+      tableThread=new QThread();
+      myTable->moveToThread(tableThread);
+      tableThread->start();
+      myTable->show();
 
 }
 

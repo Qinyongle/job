@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <common.h>
+#include <table.h>
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -19,6 +20,9 @@ public:
 
 
     void delay(int );
+
+    QThread *tableThread=nullptr;
+    table *myTable=nullptr;
 
 private:
     Ui::MainWindow *ui;

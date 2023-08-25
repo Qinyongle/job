@@ -7,6 +7,12 @@ table::table(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    myAudio =new Audio();
+    myAudioThread=new QThread();
+    myAudio->moveToThread(myAudioThread);
+    connect(myAudio,&Audio::recordStart,myAudio,&Audio::audioRecord);
+    myAudioThread->start();
+
     rightClickInit();
 
     tableViewInit();
@@ -16,7 +22,10 @@ table::table(QWidget *parent) :
 
 table::~table()
 {
+    myAudioThread->deleteLater();
+    myAudio->deleteLater();
     delete ui;
+
 }
 
 
@@ -37,13 +46,23 @@ void table::rightClickInit()
               model->setItem(ui->tableView->currentIndex().row()+1,1,new QStandardItem(time));
        });
 
+    actRecord=new QAction("record",ui->tableView);
+    connect(actRecord,&QAction::triggered,[this]()
+    {
+        emit myAudio->recordStart();
+    });
+
      actDelet=new QAction("delete",ui->tableView);
      connect(actDelet,&QAction::triggered,[this]()
      {
          model->removeRow(ui->tableView->currentIndex().row());
      });
+
+
+
        m_actMenu->addAction(m_actDevRefresh);
        m_actMenu->addAction(actDelet);
+       m_actMenu->addAction(actRecord);
 
        ui->tableView->setContextMenuPolicy(Qt::CustomContextMenu);
        connect(ui->tableView, &QTableView::customContextMenuRequested,

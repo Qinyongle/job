@@ -2,6 +2,7 @@
 #define TABLE_H
 
 #include <QWidget>
+#include <audio.h>
 #include <common.h>
 namespace Ui {
 class table;
@@ -21,10 +22,17 @@ public:
 
     QStandardItemModel *model;
     QMenu *m_actMenu;
+
     QAction *m_actDevRefresh;
     QAction *actDelet;
+    QAction *actRecord;
+
     QItemSelectionModel *selectModel;
     QDateTime *datetime;
+    Audio *myAudio;
+    QThread *myAudioThread;
+
+
     uint32_t rowCount=0;
     uint32_t colCount=0;
 

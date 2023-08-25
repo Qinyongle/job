@@ -12,5 +12,7 @@
 #include <QTextCodec>
 #include <QTimer>
 #include <QDebug>
+#include <QThread>
+#include <QFile>
 
 #endif // COMMON_H
