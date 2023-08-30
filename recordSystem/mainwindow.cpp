@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
 }
 
 MainWindow::~MainWindow()
@@ -33,12 +34,15 @@ void MainWindow::delay(int ms)
 
 void MainWindow::on_CheckBtn_clicked()
 {
-    //  this->hide();
+    //this->hide();
       myTable=new table();
-      tableThread=new QThread();
-      myTable->moveToThread(tableThread);
-      tableThread->start();
       myTable->show();
+
+}
+
+
+void MainWindow::on_AddBtn_clicked()
+{
 
 }
 

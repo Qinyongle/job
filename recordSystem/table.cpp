@@ -22,6 +22,7 @@ table::table(QWidget *parent) :
 
 table::~table()
 {
+    qDebug()<<"~table";
     myAudioThread->deleteLater();
     myAudio->deleteLater();
     delete ui;
@@ -50,6 +51,7 @@ void table::rightClickInit()
     connect(actRecord,&QAction::triggered,[this]()
     {
         emit myAudio->recordStart();
+
     });
 
      actDelet=new QAction("delete",ui->tableView);

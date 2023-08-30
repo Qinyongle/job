@@ -8,6 +8,7 @@
 #include <mutex>
 
 
+
 extern "C"{
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
@@ -43,6 +44,7 @@ class Audio : public QObject
     Q_OBJECT
 public:
     explicit Audio(QObject *parent = nullptr);
+    ~Audio();
     bool checkMicName(void);
     bool recording();
 
@@ -84,11 +86,11 @@ private:
     int							m_aIndex;	//输入音频流索引
     int							m_aOutIndex;//输出音频流索引
     AVFormatContext				*m_aFmtCtx=nullptr;
-    AVFormatContext				*m_oFmtCtx;
-    AVCodecContext				*m_aDecodeCtx;
-    AVCodecContext				*m_aEncodeCtx;
-    SwrContext					*m_swrCtx;
-    AVAudioFifo					*m_aFifoBuf;
+    AVFormatContext				*m_oFmtCtx=nullptr;
+    AVCodecContext				*m_aDecodeCtx=nullptr;
+    AVCodecContext				*m_aEncodeCtx=nullptr;
+    SwrContext					*m_swrCtx=nullptr;
+    AVAudioFifo					*m_aFifoBuf=nullptr;
 
     std::atomic_bool			m_stop;
 

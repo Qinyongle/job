@@ -37,7 +37,12 @@ Audio::Audio(QObject *parent) : QObject(parent)
   ,m_stop(false)
   ,m_bitrate(128000)
 {
+    qDebug()<<"Audio";
+}
 
+Audio::~Audio()
+{
+    qDebug()<<"~Audio";
 }
 
 bool Audio::checkMicName()
@@ -133,8 +138,6 @@ void Audio::RecordAudioThreadProc()
     if(OpenOutput()<0)
         return ;
 
-
-
         m_nbSamples = m_aEncodeCtx->frame_size;
         qDebug()<<" m_aEncodeCtx->frame_size: "<< m_aEncodeCtx->frame_size;
         if (!m_nbSamples)
@@ -153,13 +156,16 @@ void Audio::RecordAudioThreadProc()
             std::thread soundRecord(&Audio::AcquireSoundThreadProc, this);
             soundRecord.detach();
 
+
         while(1)
         {
 
             if(m_state==RecordState::Stopped)
             {
+
+
                 std::lock_guard<std::mutex> lk(m_mtx);
-                if(av_audio_fifo_size(m_aFifoBuf)<m_nbSamples)
+                if(av_audio_fifo_size(m_aFifoBuf)<m_aEncodeCtx->frame_size)
                     break;
             }
             std::unique_lock<std::mutex> lk(m_mtx);
@@ -185,16 +191,12 @@ void Audio::RecordAudioThreadProc()
              AVPacket pkt ={0};
 
              av_init_packet(&pkt);
-//                          qDebug()<<"m_nbSamples: "<<m_nbSamples;
-//                          qDebug()<<"aFrame->nb_samples: "<<aFrame->nb_samples;
-//                          qDebug()<<"m_aEncodeCtx->frame_size: "<<m_aEncodeCtx->frame_size;
 
              ret = avcodec_send_frame(m_aEncodeCtx,aFrame);
 
              if(ret!=0)
              {
                 // qDebug() << "audio avcodec_send_frame failed, ret: " << ret;
-
                  av_frame_free(&aFrame);
                  av_packet_unref(&pkt);
                  continue;
@@ -226,10 +228,14 @@ void Audio::RecordAudioThreadProc()
         }
 
         FlushEncoder();
-        av_write_trailer(m_oFmtCtx);
-        Release();
-        qDebug()<<"parent thread exit";
 
+        av_write_trailer(m_oFmtCtx);
+
+        Release();
+
+
+
+        qDebug()<<"parent thread exit";
 }
 
 void Audio::AcquireSoundThreadProc()
@@ -250,6 +256,7 @@ void Audio::AcquireSoundThreadProc()
 
     while(m_state!=RecordState::Stopped)
     {
+        //qDebug()<<"m_state: "<<m_state;
         if(av_read_frame(m_aFmtCtx,&pkg)<0)
         {
             qDebug() << "audio av_read_frame < 0";
@@ -276,8 +283,6 @@ void Audio::AcquireSoundThreadProc()
         dstNbSamples=av_rescale_rnd(swr_get_delay(m_swrCtx,m_aDecodeCtx->sample_rate)+rawFrame->nb_samples,
             m_aEncodeCtx->sample_rate,m_aDecodeCtx->sample_rate,AV_ROUND_UP);
 
-        qDebug()<<"dstNbSamples: "<<dstNbSamples;
-        qDebug()<<"maxDstNbSamples: "<<maxDstNbSamples;
         if(dstNbSamples>maxDstNbSamples)
         {
             qDebug()<<">>>";
@@ -317,8 +322,8 @@ void Audio::AcquireSoundThreadProc()
 
      }
 
-    av_frame_free(&rawFrame);
-    av_frame_free(&newFrame);
+//    av_frame_free(&rawFrame);
+//    av_frame_free(&newFrame);
     qDebug() << "sound record thread exit";
 }
 
@@ -631,13 +636,6 @@ void Audio::delay(int ms)
 void Audio::audioRecord()
 {
 
-//    qDebug()<<__FUNCTION__;
-//    if(checkMicName()==true)
-//    {
-//        qDebug()<<"true";
-//    }
-   // recording();
-
     stateChange();
 }
 
@@ -652,9 +650,23 @@ int Audio::stateChange()
 
         std::thread recordThread(&Audio::RecordAudioThreadProc,this);
         recordThread.detach();      //分离创建线程，不受主线程控制
+        return 1;
     }break;
-        case Started:m_state=RecordState::Stopped;qDebug()<<"stop record";break;
-        case Stopped:m_state=RecordState::Started;qDebug()<<"start record";break;
+        case Started:
+    {
+        m_state=RecordState::Stopped;
+        qDebug()<<"stop record";
+        return 0;
+
+    }break;
+        case Stopped:
+    {
+        m_state=RecordState::Started;
+        qDebug()<<"start record";
+        std::thread recordThread(&Audio::RecordAudioThreadProc,this);
+        recordThread.detach();      //分离创建线程，不受主线程控制
+        return 1;
+    }break;
         default:;
     }
     return 0;
